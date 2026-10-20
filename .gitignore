@@ -1,0 +1,56 @@
+# --- Local data cache (never committed) ---
+/data/
+
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Node / web ---
+node_modules/
+dist/
+dist-ssr/
+*.local
+coverage/
+.vite/
+.eslintcache
+*.tsbuildinfo
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+apps/web/screenshots/
+
+# --- Python / pipeline ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+
+# --- Generated geodata outside data/ ---
+*.pmtiles
+*.mbtiles
+*.osm.pbf
+*.duckdb
+*.duckdb.wal
+
+# --- Logs ---
+*.log
+npm-debug.log*
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
