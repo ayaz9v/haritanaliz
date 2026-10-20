@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "sample": true,
+  "latest": "2026-10-20",
+  "versions": [
+    {
+      "version": "2026-10-20",
+      "path": "v/2026-10-20/",
+      "published_at": "2026-10-20T00:00:00Z",
+      "files": {
+        "config": "config.json",
+        "regions": "regions.json"
+      },
+      "sources": []
+    }
+  ]
+}

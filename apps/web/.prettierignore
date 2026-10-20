@@ -1,0 +1,8 @@
+dist
+coverage
+playwright-report
+test-results
+screenshots
+package-lock.json
+# Written by the pipeline (haritanaliz export-web-config); keep its formatting.
+public/data-sample
