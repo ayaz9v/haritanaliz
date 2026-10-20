@@ -105,4 +105,6 @@ Altlık harita: [OpenFreeMap](https://openfreemap.org) © [OpenMapTiles](https:/
 
 ## Lisans
 
-Kodun lisansı henüz belirlenmedi. Verilerin lisansları kaynaklarına aittir.
+**Kod:** Bu depodaki kod herkes tarafından görüntülenebilir, ancak açık kaynak lisansıyla sunulmuyor: tüm hakları saklıdır (© 2026 ayaz9v). Kodu kopyalamak, değiştirmek veya dağıtmak için izin gerekir. İleride MIT gibi bir açık kaynak lisansına geçilebilir (K-036).
+
+**Veri:** Veri çıktıları koddan ayrı lisanslanır. OpenStreetMap'ten türetilen çıktılar (sınır tile'ları, bölge listeleri, analiz dosyaları) ODbL 1.0 kapsamındadır. Ayrıntılar [docs/data_sources.md](docs/data_sources.md)'de (K-037).

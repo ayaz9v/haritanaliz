@@ -197,3 +197,19 @@ Kayıt biçimi: **Karar** (ne), **Gerekçe** (neden), **Sonuçlar** (neyi etkile
 - **Durum:** Kabul edildi
 - **Karar:** `.gitattributes` ile depoda ve çalışma kopyasında LF kullanılır (`* text=auto eol=lf`); yalnızca `.ps1`, `.bat` ve `.cmd` dosyaları CRLF'tir. `.editorconfig` aynı kuralı editörlere bildirir.
 - **Gerekçe:** Git for Windows varsayılan olarak `core.autocrlf=true` kullanır. Linux CI, Prettier ve Ruff ise LF bekler; tek kural, her commit'te satır sonu farkı oluşmasını engeller.
+
+---
+
+## Lisans kararları
+
+### K-036 · Kod lisansı: tüm hakları saklı (2026-10-20)
+- **Durum:** Kabul edildi (proje sahibinin kararı)
+- **Karar:** Şimdilik açık kaynak lisansı eklenmiyor. Kod public depoda herkese görünür, ancak tüm hakları saklıdır. README'de bu belirtilir. Depoda `LICENSE` dosyası yoktur.
+- **Gerekçe:** Lisans seçimi geri alınması zor bir karar. Proje olgunlaşmadan kodun yeniden kullanım koşullarını bağlamamak.
+- **Sonuçlar:** İleride MIT gibi bir lisansa geçilebilir; o zaman bu kayıt güncellenir. Kod lisansı veri lisansından bağımsızdır (K-037).
+
+### K-037 · Veri çıktıları ODbL 1.0 altında (2026-10-20)
+- **Durum:** Kabul edildi
+- **Karar:** OpenStreetMap'ten türetilen bütün yayınlanan veri çıktıları (sınır tile'ları, bölge listeleri, işletme tile'ları, analiz JSON'ları) ODbL 1.0 altında sunulur. Hangi çıktının neden kapsama girdiği ve yükümlülükler `docs/data_sources.md`'de ("OpenStreetMap ve ODbL").
+- **Gerekçe:** Bu çıktılar OSM'nin türetilmiş veritabanlarıdır. ODbL, kamuya kullanılan türetilmiş veritabanlarının aynı lisansla sunulmasını ve makinece okunur biçimde erişilebilir olmasını şart koşar. Analiz çıktılarını da kapsama almak en güvenli yorumdur.
+- **Sonuçlar:** Her sürümün dosyalarında lisans ve atıf bilgisi taşınır; sitede veri lisansı belirtilir. Yayın adımında her sürüm için tam çözünürlüklü indirilebilir dosya sunulur. TÜİK ve SEGE verileriyle birleşen çıktıların uyumu ilk kamuya açık yayından önce değerlendirilecek (açık konu).

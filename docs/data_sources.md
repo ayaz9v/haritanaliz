@@ -30,9 +30,39 @@ Bu belge, kullanılan her veri kaynağının içeriğini, erişim yolunu, günce
   - idari sınırlar (`boundary=administrative`): il, ilçe, mahalle/köy. Türkiye'deki `admin_level` karşılıkları (il, ilçe, mahalle/köy) sınırların işlendiği adımda veriyle doğrulanacak.
   - işletmeler (ikincil kaynak): `config/categories.yaml` → `osm` etiketleri.
   - yol ağı (ana yola uzaklık), gündüz talebi noktaları (ofis, okul, hastane, AVM, istasyon, ticari/sanayi alanları), tedarik noktaları.
-- **Lisans:** Open Database License (ODbL) 1.0.
+- **Lisans:** Open Database License (ODbL) 1.0. Yükümlülükler ve çıktılarımıza etkisi aşağıda, "OpenStreetMap ve ODbL" bölümünde.
 - **Atıf:** "© OpenStreetMap katkıcıları", bağlantı: <https://www.openstreetmap.org/copyright> (sitede her zaman görünür).
-- **"Aynı lisansla paylaş" yükümlülüğü:** OSM'den türetilmiş bir veritabanını (ör. OSM işletmeleri veya sınırları içeren tile'lar ya da JSON'lar) kamuya sunmak ODbL'nin türetilmiş veritabanı koşullarını doğurabilir. İlk yayından önce OSMF rehberleri çerçevesinde değerlendirilecek; gerekirse türetilmiş veri ODbL altında sunulacak. **Açık konu.**
+
+## OpenStreetMap ve ODbL
+
+Kodun lisansı ile verinin lisansı birbirinden ayrıdır (K-036, K-037). ODbL, OSM'den türetilen **veriyi** bağlar; kodu bağlamaz.
+
+### ODbL'nin üç kavramı
+
+- **Türetilmiş veritabanı:** OSM verisinden çıkarılmış, dönüştürülmüş veya başka veriyle karıştırılmış veri. Örnekler: süzülmüş sınırlar, sadeleştirilmiş poligonlar, OSM noktalarından üretilen Voronoi alanları, OSM ile eşleştirilmiş işletmeler, bunlardan hesaplanan bölge değerleri. Kamuya kullanılırsa **ODbL ile** sunulmalı ve makinece okunur biçimde erişilebilir olmalıdır (ODbL 4.4 ve 4.6).
+- **Üretilmiş eser (produced work):** Veriden üretilen ama veri olarak kullanılmak üzere tasarlanmamış çıktı; tipik örneği ekranda çizilen harita görüntüsü. Yalnızca **atıf** gerektirir (ODbL 4.3). Vektör tile'lar ise içindeki nesneler geri çıkarılabildiği için görüntü değil veritabanı sayılır.
+- **Toplu veritabanı (collective database):** OSM verisi ile bağımsız bir veri kümesi, birbirine karışmadan yan yana duruyorsa (ör. ayrı katmanlar), bağımsız veri ODbL'ye girmez. Aynı türden veriyi birleştirmek veya eşleştirmek ise karışım sayılır ve bütünü türetilmiş veritabanı yapar.
+
+### Yayınlayacağımız çıktılar
+
+| Çıktı | OSM'den türetilmiş mi? | Kapsam | Yapılacak |
+|---|---|---|---|
+| Ekranda çizilen harita | evet | üretilmiş eser | görünür atıf (var) |
+| Sınır tile'ları (`boundaries.pmtiles`: il, ilçe, mahalle/köy, yaklaşık sınırlar) | evet: OSM sınırları ve yer noktaları | türetilmiş veritabanı → **ODbL** | ODbL ile yayınla; dosya metadata'sında atıf ve lisans |
+| Bölge listeleri / gazetteer (`regions/*.json`) | evet: adlar, hiyerarşi, bbox, alanlar | türetilmiş veritabanı → **ODbL** | ODbL; dosyada `license` ve `attribution` alanları |
+| İşletme tile'ları (Adım 2) | evet: OSM işletmeleri Overture ile eşleştirilir | eşleştirme karışım üretir → bütünü **ODbL** | ODbL; Overture kayıtlarının kendi atıf ve bildirim koşulları da korunur (lisansları izin verici: Apache 2.0 vb.; Adım 2'de kayıt bazında doğrulanacak) |
+| Analiz JSON'ları (sayılar, oranlar, skorlar) | evet: OSM'den türetilen işletme sayıları ve sınırlarla hesaplanır | en güvenli yorumla türetilmiş veritabanı → **ODbL** | ODbL. TÜİK ve SEGE değerleri de içerdikleri için bu kaynakların koşullarıyla uyum ilk kamuya açık yayından önce kontrol edilecek (**açık konu**) |
+| Altlık harita (OpenFreeMap) | evet (onların ürünü) | OpenFreeMap/OpenMapTiles koşulları | altlık atfı (var) |
+| Kod (`apps/`, `pipeline/`) | hayır | ODbL dışı | tüm hakları saklı (K-036) |
+
+### Yükümlülükler ve uygulama
+
+1. **Atıf:** Sitede "© OpenStreetMap katkıcıları" ve telif sayfası bağlantısı her zaman görünür (var). İndirilebilen her dosyada da atıf bulunur: PMTiles metadata'sında `attribution`, JSON dosyalarında `attribution` ve `license` alanları.
+2. **Lisans bildirimi:** Veri çıktılarının ODbL 1.0 altında olduğu `manifest.json`'da ve sitede belirtilir. Lisans metnine bağlantı verilir: <https://opendatacommons.org/licenses/odbl/1-0/>.
+3. **Aynı lisansla paylaşım:** Türetilmiş veritabanlarına ODbL'yi daraltan ek kullanım koşulu konmaz.
+4. **Teknik kısıt yok:** Dosyalar düz HTTP ile indirilebilir kalır. Şifreleme, DRM veya erişimi kısıtlayan bir önlem uygulanmaz (ODbL 4.7).
+5. **Erişim:** Kamuya kullandığımız veriler sürüm klasöründe zaten herkese açıktır. Tile'lar sadeleştirildiği için yayın adımında her sürüme tam çözünürlüklü sınır dosyası da eklenir (ör. GeoParquet veya GeoPackage). Sitede bir "veri indir ve lisans" bağlantısı olur.
+6. **Yerel çalışma dosyaları** (`data/`) yayımlanmadığı sürece bu yükümlülükler doğmaz. Depodaki küçük örnek veri (`apps/web/public/data-sample/`) OSM'den türetilmişse ODbL kapsamındadır ve öyle işaretlenir.
 
 ## TÜİK ADNKS (nüfus)
 

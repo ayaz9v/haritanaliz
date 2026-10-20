@@ -6,7 +6,7 @@ Her adımın sonunda güncellenir: ne yapıldı, nasıl doğrulandı, ne açık 
 
 ## Adım 0: Kurulum ve iskelet (2026-10-20)
 
-**Durum:** Tamamlandı. GitHub'a push ve CI kontrolü, GitHub CLI girişi yapıldıktan sonra kaydedilecek.
+**Durum:** Tamamlandı. GitHub'a push edildi; CI geçti ([çalıştırma 39443793967](https://github.com/ayaz9v/haritanaliz/actions/runs/39443793967), commit `c67460c`).
 
 ### Ortam
 
@@ -56,7 +56,7 @@ Her adımın sonunda güncellenir: ne yapıldı, nasıl doğrulandı, ne açık 
 | Web: `npm run build` | başarılı; uygulama kodu 13 kB, React 68 kB, MapLibre 294 kB (gzip) |
 | Uçtan uca: Playwright, headless Edge | 8 test geçti: masaüstü 1440×900 ve mobil Pixel 7 (harita açılışı, veri tarihi, atıf, URL'de filtre, bölge arama, sayfa hatası yok) |
 | Ekran görüntüleri | masaüstü ve mobil; açılış, arama ve filtre durumları gözle kontrol edildi |
-| GitHub CI | push sonrasında |
+| GitHub CI (2026-10-20) | geçti: web 35 test (8 dosya), lint, biçim, build; pipeline 50 test, ruff. İlk çalıştırmada `astral-sh/setup-uv@v10` çözülemedi, çünkü action artık hareketli ana sürüm etiketi yayımlamıyor. v10.3.0 commit'ine sabitlenerek düzeltildi. |
 
 ### Açık konular ve bilinen sınırlamalar
 
@@ -65,9 +65,8 @@ Her adımın sonunda güncellenir: ne yapıldı, nasıl doğrulandı, ne açık 
 - Bottom sheet dokunarak açılıp kapanıyor; sürükleme hareketi yok.
 - Fırsat modunda tek tür seçimi onay kutularıyla yapılıyor; ileride radyo düğmesine çevrilebilir.
 - Uçtan uca testler CI'da çalışmıyor (K-034).
-- ODbL "aynı lisansla paylaş" yükümlülüğünün yayınlanan veriye etkisi değerlendirilecek (bkz. `docs/data_sources.md`).
-- Kod lisansı seçilmedi.
 - typescript-eslint TypeScript 7'yi desteklediğinde TS 7'ye geçilecek (K-023).
+- Sonradan karara bağlananlar: kod lisansı (K-036, tüm hakları saklı) ve veri çıktılarının ODbL kapsamı (K-037, `docs/data_sources.md`).
 
 ### Sonraki adım için gerekenler
 
