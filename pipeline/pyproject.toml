@@ -1,0 +1,56 @@
+[project]
+name = "haritanaliz"
+version = "0.1.0"
+description = "haritanaliz data and analysis pipeline (boundaries, POIs, population, analysis, tiles, publishing)."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "duckdb>=1.5.6",
+    "esda>=2.10.0",
+    "geopandas>=1.2.0",
+    "libpysal>=4.15.0",
+    "pydantic>=2.14.1",
+    "pyyaml>=6.0.3",
+    "shapely>=2.2.0",
+    "spreg>=1.9.1",
+    "statsmodels>=0.15.0",
+    "typer>=0.27.3",
+]
+
+[project.scripts]
+haritanaliz = "haritanaliz.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "C4",  # flake8-comprehensions
+    "PTH", # prefer pathlib
+    "PT",  # pytest style
+    "N",   # pep8-naming
+    "RUF", # ruff-specific
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers"]
