@@ -9,6 +9,8 @@ dependencies = [
     "esda>=2.10.0",
     "geopandas>=1.2.0",
     "libpysal>=4.15.0",
+    "osmium>=4.3.2",
+    "pyarrow>=26.0.0",
     "pydantic>=2.14.1",
     "pyyaml>=6.0.3",
     "shapely>=2.2.0",
@@ -50,6 +52,13 @@ select = [
     "N",   # pep8-naming
     "RUF", # ruff-specific
 ]
+# Turkish text: dotless ı is a letter, not a look-alike of i; ’ is a common apostrophe in names.
+# The report uses typographic dashes and minus signs on purpose.
+allowed-confusables = ["ı", "’", "–", "−"]
+
+[tool.ruff.lint.per-file-ignores]
+# Generates Markdown prose; sentences are kept on one line.
+"src/haritanaliz/boundaries/report.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

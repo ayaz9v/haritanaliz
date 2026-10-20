@@ -41,6 +41,9 @@ class ManifestVersion(StrictModel):
     published_at: AwareDatetime
     files: dict[FileKey, RelativeFile]
     sources: list[ManifestSource] = Field(default_factory=list)
+    # Data licence of the version's files (ODbL for OSM-derived data, see K-037).
+    license: str | None = None
+    attribution: str | None = None
 
     @field_validator("version")
     @classmethod

@@ -12,7 +12,8 @@ from haritanaliz.cli import app
 
 runner = CliRunner()
 
-DATA_COMMANDS = ["boundaries", "pois", "population", "analyze", "tiles", "publish"]
+PLACEHOLDER_COMMANDS = ["pois", "population", "analyze", "publish"]
+DATA_COMMANDS = ["download-osm", "boundaries", "tiles", "sample", *PLACEHOLDER_COMMANDS]
 
 
 def test_help_lists_all_commands() -> None:
@@ -46,11 +47,21 @@ def test_validate_config_reports_errors(
     assert "zoom 0" in result.output
 
 
-@pytest.mark.parametrize("command", DATA_COMMANDS)
-def test_data_commands_are_placeholders(command: str) -> None:
+@pytest.mark.parametrize("command", PLACEHOLDER_COMMANDS)
+def test_later_commands_are_placeholders(command: str) -> None:
     result = runner.invoke(app, [command])
     assert result.exit_code == 1
     assert "not implemented yet" in result.output
+
+
+@pytest.mark.parametrize("command", ["boundaries", "tiles", "sample"])
+def test_boundary_commands_need_a_downloaded_extract(
+    command: str, write_config, settings_data: dict[str, Any], categories_data: dict[str, Any]
+) -> None:
+    directory = write_config(settings_data, categories_data)
+    result = runner.invoke(app, [command, "--config-dir", str(directory)])
+    assert result.exit_code == 1
+    assert "download-osm" in result.output
 
 
 def test_export_web_config_writes_json(config_dir: Path, tmp_path: Path) -> None:

@@ -22,6 +22,9 @@ def build_web_config(config: ProjectConfig) -> dict[str, Any]:
     return {
         "schema_version": WEB_CONFIG_SCHEMA_VERSION,
         "zoom_bands": [band.model_dump(mode="json") for band in config.settings.map.zoom_bands],
+        "boundary_levels": [
+            level.model_dump(mode="json") for level in config.settings.map.boundary_levels
+        ],
         "category_groups": [{"id": group.id, "name": group.name} for group in categories.groups],
         "categories": [
             {"id": category.id, "name": category.name, "group": category.group}

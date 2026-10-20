@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import re
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -66,6 +67,7 @@ class PathSettings(StrictModel):
     interim_dir: Path
     output_dir: Path
     tuik_dir: Path
+    osm_dir: Path
 
     @model_validator(mode="after")
     def _relative_to_repo(self) -> Self:
@@ -153,6 +155,51 @@ class AnalysisSettings(StrictModel):
     confidence: ConfidenceSettings
 
 
+IsoProvince = Annotated[str, StringConstraints(pattern=r"^TR-\d{2}$")]
+
+
+class OfficialCounts(StrictModel):
+    il: int = Field(gt=0)
+    ilce: int = Field(gt=0)
+    mahalle: int = Field(gt=0)
+    koy: int = Field(gt=0)
+
+
+class UrbanRadius(StrictModel):
+    town: float = Field(gt=0, le=50)
+    city: float = Field(gt=0, le=50)
+
+
+class BoundarySettings(StrictModel):
+    area_crs: Annotated[str, StringConstraints(pattern=r"^\+proj=")]
+    country_iso: Annotated[str, StringConstraints(pattern=r"^[A-Z]{2}$")]
+    min_parent_share: float = Field(gt=0, le=1)
+    container_share: float = Field(gt=0, le=1)
+    approx_place_values: list[Identifier] = Field(min_length=1)
+    urban_radius_km: UrbanRadius
+    duplicate_iou: float = Field(gt=0, le=1)
+    min_gap_km2: float = Field(ge=0)
+    metropolitan_provinces: list[IsoProvince]
+    special_zone_patterns: list[str] = Field(min_length=1)
+    official_counts: OfficialCounts
+
+    @field_validator("special_zone_patterns")
+    @classmethod
+    def _valid_patterns(cls, patterns: list[str]) -> list[str]:
+        for pattern in patterns:
+            try:
+                re.compile(pattern)
+            except re.error as exc:
+                raise ValueError(f"invalid regular expression {pattern!r}: {exc}") from exc
+        return patterns
+
+    @field_validator("metropolitan_provinces")
+    @classmethod
+    def _unique_provinces(cls, provinces: list[str]) -> list[str]:
+        _require_unique(provinces, "metropolitan province")
+        return provinces
+
+
 class ZoomBand(StrictModel):
     """A zoom range [min_zoom, max_zoom) that switches map layers."""
 
@@ -168,22 +215,63 @@ class ZoomBand(StrictModel):
         return self
 
 
+class BoundaryLevel(StrictModel):
+    """Zoom range [min_zoom, max_zoom) in which a boundary level is filled and clickable."""
+
+    id: Literal["il", "ilce", "birim"]
+    min_zoom: int = Field(ge=0, le=24)
+    max_zoom: int = Field(gt=0, le=24)
+
+
+def _check_contiguous(ranges: list[Any], label: str) -> None:
+    if ranges[0].min_zoom != 0:
+        raise ValueError(f"the first {label} must start at zoom 0")
+    for previous, current in itertools.pairwise(ranges):
+        if previous.max_zoom != current.min_zoom:
+            raise ValueError(
+                f"{label}s must be contiguous: '{previous.id}' ends at {previous.max_zoom}"
+                f" but '{current.id}' starts at {current.min_zoom}"
+            )
+    for item in ranges:
+        if not item.min_zoom < item.max_zoom:
+            raise ValueError(f"{label} '{item.id}': min_zoom must be lower than max_zoom")
+    _require_unique([item.id for item in ranges], f"{label} id")
+
+
 class MapSettings(StrictModel):
     zoom_bands: list[ZoomBand] = Field(min_length=1)
+    boundary_levels: list[BoundaryLevel] = Field(min_length=3, max_length=3)
 
     @field_validator("zoom_bands")
     @classmethod
     def _contiguous(cls, bands: list[ZoomBand]) -> list[ZoomBand]:
-        if bands[0].min_zoom != 0:
-            raise ValueError("the first zoom band must start at zoom 0")
-        for previous, current in itertools.pairwise(bands):
-            if previous.max_zoom != current.min_zoom:
-                raise ValueError(
-                    f"zoom bands must be contiguous: '{previous.id}' ends at {previous.max_zoom}"
-                    f" but '{current.id}' starts at {current.min_zoom}"
-                )
-        _require_unique([band.id for band in bands], "zoom band id")
+        _check_contiguous(bands, "zoom band")
         return bands
+
+    @field_validator("boundary_levels")
+    @classmethod
+    def _ordered_levels(cls, levels: list[BoundaryLevel]) -> list[BoundaryLevel]:
+        if [level.id for level in levels] != ["il", "ilce", "birim"]:
+            raise ValueError("boundary_levels must be il, ilce, birim in this order")
+        _check_contiguous(levels, "boundary level")
+        return levels
+
+
+class TileSettings(StrictModel):
+    max_zoom: int = Field(ge=1, le=16)
+    layer_min_zoom: dict[Literal["il", "ilce", "birim", "ozel_bolge"], int]
+    label_min_zoom: dict[Literal["il", "ilce", "birim"], int]
+
+    @model_validator(mode="after")
+    def _within_range(self) -> Self:
+        for name, zoom in {**self.layer_min_zoom, **self.label_min_zoom}.items():
+            if not 0 <= zoom <= self.max_zoom:
+                raise ValueError(f"min zoom of '{name}' must be between 0 and max_zoom")
+        if set(self.layer_min_zoom) != {"il", "ilce", "birim", "ozel_bolge"}:
+            raise ValueError("layer_min_zoom needs il, ilce, birim and ozel_bolge")
+        if set(self.label_min_zoom) != {"il", "ilce", "birim"}:
+            raise ValueError("label_min_zoom needs il, ilce and birim")
+        return self
 
 
 class R2Settings(StrictModel):
@@ -216,7 +304,9 @@ class Settings(StrictModel):
     matching: MatchingSettings
     h3: H3Settings
     analysis: AnalysisSettings
+    boundaries: BoundarySettings
     map: MapSettings
+    tiles: TileSettings
     publish: PublishSettings
 
 
@@ -341,6 +431,15 @@ class ProjectConfig:
     config_dir: Path
     settings: Settings
     categories: CategoriesConfig
+
+    @property
+    def root(self) -> Path:
+        """Repository root: config/ lives directly under it."""
+        return self.config_dir.resolve().parent
+
+    def path(self, relative: Path) -> Path:
+        """Resolve a repository-relative path from settings.paths."""
+        return self.root / relative
 
 
 def load_settings(path: Path) -> Settings:

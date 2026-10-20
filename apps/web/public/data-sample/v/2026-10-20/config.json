@@ -20,6 +20,23 @@
       "max_zoom": 24
     }
   ],
+  "boundary_levels": [
+    {
+      "id": "il",
+      "min_zoom": 0,
+      "max_zoom": 7
+    },
+    {
+      "id": "ilce",
+      "min_zoom": 7,
+      "max_zoom": 9
+    },
+    {
+      "id": "birim",
+      "min_zoom": 9,
+      "max_zoom": 24
+    }
+  ],
   "category_groups": [
     {
       "id": "food_drink",

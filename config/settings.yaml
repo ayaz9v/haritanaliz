@@ -19,6 +19,7 @@ paths:
   interim_dir: data/interim
   output_dir: data/output
   tuik_dir: data/raw/tuik
+  osm_dir: data/raw/osm
 
 sources:
   overture:
@@ -65,6 +66,51 @@ analysis:
     high: 0.75
     medium: 0.5
 
+boundaries:
+  # Equal-area projection for areas: Albers, standard parallels 37°N and 41°N, centred on Türkiye.
+  area_crs: "+proj=aea +lat_0=39 +lon_0=35 +lat_1=37 +lat_2=41 +ellps=GRS80 +units=m +no_defs"
+  # ISO 3166-2 code of the country polygon (admin_level=2) used to keep only Turkish units.
+  country_iso: TR
+  # Units are attached to the district/province they overlap most; smaller shares are reported.
+  min_parent_share: 0.9
+  # A polygon is a container (e.g. a belde) when deeper units cover at least this share of it.
+  container_share: 0.5
+  # Place points that can stand for a neighbourhood or village without a boundary polygon.
+  approx_place_values: [village, neighbourhood, quarter, suburb]
+  # Neighbourhood points (neighbourhood/suburb/quarter) can stand for a mahalle only within
+  # this distance of a town/city point or inside a municipal area. Elsewhere they are almost
+  # always village quarters (köy mahallesi), which are not administrative units.
+  # Sensitivity (2026-10-19 extract): 3/10 km -> 29,326 mahalle, 5/15 km -> 30,479;
+  # official count 32,325 (see docs/reports/sinir_kalitesi.md).
+  urban_radius_km:
+    town: 5
+    city: 15
+  # Two units overlapping by at least this share (intersection over union) are duplicates.
+  duplicate_iou: 0.9
+  # Uncovered parts of a district smaller than this (km²) are ignored.
+  min_gap_km2: 0.05
+  # Metropolitan provinces (ISO 3166-2). Since Law 6360 (2014) they have no villages; their
+  # former villages are mahalle, even where OSM still tags place=village.
+  metropolitan_provinces: [TR-01, TR-06, TR-07, TR-09, TR-10, TR-16, TR-20, TR-21, TR-25, TR-26,
+    TR-27, TR-31, TR-33, TR-34, TR-35, TR-38, TR-41, TR-42, TR-44, TR-45, TR-46, TR-47, TR-48,
+    TR-52, TR-54, TR-55, TR-59, TR-61, TR-63, TR-65]
+  # Special zones (organised industrial zones, free zones): regular expressions matched on
+  # Turkish-lowercased, ASCII-folded names.
+  special_zone_patterns:
+    - "organize sanayi"
+    - "\\bosb\\b"
+    - "\\bo s b\\b"
+    - "serbest bolge"
+    - "endustri bolgesi"
+  # Official counts for validation: e-İçişleri "Türkiye Mülki İdare Bölümleri Envanteri",
+  # accessed 2026-10-20. The inventory lists 922 districts plus 51 provincial municipalities;
+  # with the 51 central districts (merkez ilçe) the district total is 973.
+  official_counts:
+    il: 81
+    ilce: 973
+    mahalle: 32325
+    koy: 18211
+
 map:
   # Zoom bands shared by the web app and tile generation. Each band covers [min_zoom, max_zoom).
   zoom_bands:
@@ -80,6 +126,33 @@ map:
       name: Sokak ölçeği
       min_zoom: 14
       max_zoom: 24
+  # Boundary level that is filled, highlighted and clickable at each zoom, within the bands
+  # above: provinces, then districts (both in the country band), then neighbourhoods/villages.
+  boundary_levels:
+    - id: il
+      min_zoom: 0
+      max_zoom: 7
+    - id: ilce
+      min_zoom: 7
+      max_zoom: 9
+    - id: birim
+      min_zoom: 9
+      max_zoom: 24
+
+tiles:
+  # boundaries.pmtiles: tippecanoe zoom range. MapLibre overzooms beyond max_zoom.
+  max_zoom: 12
+  # First zoom of each layer (all layers continue to max_zoom).
+  layer_min_zoom:
+    il: 0
+    ilce: 5
+    birim: 8
+    ozel_bolge: 9
+  # First zoom of the name labels of each level.
+  label_min_zoom:
+    il: 4
+    ilce: 7
+    birim: 11
 
 publish:
   versions_prefix: v/          # each data refresh is published under v/YYYY-MM-DD/
