@@ -1,0 +1,265 @@
+# haritanaliz — business categories, with OSM tags and Overture categories side by side.
+# Validated with pydantic:  uv run --project pipeline haritanaliz validate-config
+#
+# osm: "key=value" tag filters; a feature belongs to the category if ANY filter matches.
+#
+# overture: candidate values for Overture Places
+#   basic_category -> matched against the `basic_category` field
+#   taxonomy       -> matched against any level of `taxonomy.hierarchy`
+#   (the deprecated `categories` field is not used).
+#   verified: false means the candidates have NOT been checked against the Turkey subset yet.
+#   Adım 2 verifies every mapping with real data and switches it to true.
+#
+# brand_set: separates chain stores by brand information (see brand_sets).
+#   include -> only POIs whose brand is in the set; exclude -> only POIs whose brand is not.
+
+schema_version: 1
+
+groups:
+  - id: food_drink
+    name: Yeme-içme
+  - id: food_retail
+    name: Gıda perakendesi
+  - id: health
+    name: Sağlık
+  - id: personal_services
+    name: Kişisel hizmetler
+  - id: automotive
+    name: Otomotiv
+  - id: retail
+    name: Perakende
+
+brand_sets:
+  discount_chains:
+    name: Zincir marketler
+    # Initial list from the project definition. Adım 2 extends it from brand frequencies
+    # in the data (candidates to evaluate: Hakmar Express, Tarım Kredi Kooperatif Market,
+    # Migros Jet, CarrefourSA Mini) and verifies the spellings used by OSM and Overture.
+    verified: false
+    brands:
+      - name: BİM
+        aliases: [BIM]
+      - name: A101
+        aliases: [A-101]
+      - name: ŞOK
+        aliases: [SOK, Şok Market, ŞOK Market]
+
+categories:
+  # --- Yeme-içme ---
+  - id: restaurant
+    name: Restoran
+    group: food_drink
+    osm: [amenity=restaurant]
+    overture:
+      basic_category: [restaurant]
+      taxonomy: [restaurant]
+      verified: false
+
+  - id: cafe
+    name: Kafe
+    group: food_drink
+    osm: [amenity=cafe]
+    overture:
+      basic_category: [cafe, coffee_shop]
+      taxonomy: [cafe, coffee_shop]
+      verified: false
+
+  - id: fast_food
+    name: Fast food
+    group: food_drink
+    osm: [amenity=fast_food]
+    overture:
+      basic_category: [fast_food_restaurant]
+      taxonomy: [fast_food_restaurant]
+      verified: false
+
+  - id: pastry
+    name: Pastane
+    group: food_drink
+    osm: [shop=pastry, shop=confectionery]
+    overture:
+      basic_category: [dessert_shop]
+      taxonomy: [patisserie, cake_shop, dessert_shop]
+      verified: false
+
+  - id: bakery
+    name: Fırın
+    group: food_drink
+    osm: [shop=bakery]
+    overture:
+      basic_category: [bakery]
+      taxonomy: [bakery]
+      verified: false
+
+  # --- Gıda perakendesi ---
+  - id: supermarket
+    name: Süpermarket
+    group: food_retail
+    osm: [shop=supermarket]
+    overture:
+      basic_category: [supermarket]
+      taxonomy: [supermarket, hypermarket]
+      verified: false
+    brand_set:
+      exclude: discount_chains
+
+  - id: chain_market
+    name: Zincir market
+    group: food_retail
+    osm: [shop=supermarket, shop=convenience]
+    overture:
+      basic_category: [supermarket, convenience_store, grocery_store]
+      taxonomy: [supermarket, convenience_store, grocery_store, discount_store]
+      verified: false
+    brand_set:
+      include: discount_chains
+
+  - id: convenience
+    name: Bakkal
+    group: food_retail
+    osm: [shop=convenience, shop=grocery]
+    overture:
+      basic_category: [convenience_store, grocery_store]
+      taxonomy: [convenience_store, grocery_store]
+      verified: false
+    brand_set:
+      exclude: discount_chains
+
+  - id: butcher
+    name: Kasap
+    group: food_retail
+    osm: [shop=butcher]
+    overture:
+      basic_category: [butcher_shop]
+      taxonomy: [butcher_shop, meat_shop]
+      verified: false
+
+  - id: greengrocer
+    name: Manav
+    group: food_retail
+    osm: [shop=greengrocer]
+    overture:
+      basic_category: [produce_store]
+      taxonomy: [fruits_and_vegetables, produce_market, greengrocer]
+      verified: false
+
+  # --- Sağlık ---
+  - id: pharmacy
+    name: Eczane
+    group: health
+    osm: [amenity=pharmacy]
+    overture:
+      basic_category: [pharmacy]
+      taxonomy: [pharmacy]
+      verified: false
+
+  - id: dentist
+    name: Diş kliniği
+    group: health
+    osm: [amenity=dentist, healthcare=dentist]
+    overture:
+      basic_category: [dentist]
+      taxonomy: [dentist, general_dentistry]
+      verified: false
+
+  - id: veterinary
+    name: Veteriner
+    group: health
+    osm: [amenity=veterinary]
+    overture:
+      basic_category: [veterinarian]
+      taxonomy: [veterinarian]
+      verified: false
+
+  # --- Kişisel hizmetler ---
+  - id: hairdresser
+    name: Kuaför / berber
+    group: personal_services
+    osm: [shop=hairdresser, shop=barber]
+    overture:
+      basic_category: [hair_salon, barber]
+      taxonomy: [hair_salon, barber]
+      verified: false
+
+  - id: gym
+    name: Spor salonu
+    group: personal_services
+    osm: [leisure=fitness_centre]
+    overture:
+      basic_category: [gym]
+      taxonomy: [gym, fitness_center]
+      verified: false
+
+  # --- Otomotiv ---
+  - id: car_parts
+    name: Oto yedek parça
+    group: automotive
+    osm: [shop=car_parts]
+    overture:
+      basic_category: [auto_parts_store]
+      taxonomy: [auto_parts_and_supply_store, automotive_parts_and_accessories]
+      verified: false
+
+  - id: car_repair
+    name: Oto tamir
+    group: automotive
+    osm: [shop=car_repair]
+    overture:
+      basic_category: [auto_repair_shop]
+      taxonomy: [automotive_repair, auto_repair]
+      verified: false
+
+  - id: fuel
+    name: Akaryakıt istasyonu
+    group: automotive
+    osm: [amenity=fuel]
+    overture:
+      basic_category: [gas_station]
+      taxonomy: [gas_station]
+      verified: false
+
+  # --- Perakende ---
+  - id: clothes
+    name: Giyim
+    group: retail
+    osm: [shop=clothes, shop=boutique]
+    overture:
+      basic_category: [clothing_store]
+      taxonomy: [clothing_store]
+      verified: false
+
+  - id: electronics
+    name: Elektronik
+    group: retail
+    osm: [shop=electronics]
+    overture:
+      basic_category: [electronics_store]
+      taxonomy: [electronics_store, electronics]
+      verified: false
+
+  - id: mobile_phone
+    name: Cep telefonu
+    group: retail
+    osm: [shop=mobile_phone]
+    overture:
+      basic_category: [mobile_phone_store]
+      taxonomy: [mobile_phone_store]
+      verified: false
+
+  - id: appliance
+    name: Beyaz eşya
+    group: retail
+    osm: [shop=appliance]
+    overture:
+      basic_category: [appliance_store]
+      taxonomy: [appliance_store, home_appliance_store]
+      verified: false
+
+  - id: stationery
+    name: Kırtasiye
+    group: retail
+    osm: [shop=stationery]
+    overture:
+      basic_category: [stationery_store]
+      taxonomy: [stationery_store, office_supply_store]
+      verified: false

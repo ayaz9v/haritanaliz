@@ -1,0 +1,95 @@
+# haritanaliz — project settings (thresholds, weights, paths, publishing).
+# Validated with pydantic:  uv run --project pipeline haritanaliz validate-config
+# Most numbers are initial assumptions; each one is reviewed with real data in the step
+# that first uses it (see docs/methodology.md and docs/decisions.md).
+
+schema_version: 1
+
+# Study area: Türkiye.
+region:
+  country_code: TR
+  # Approximate bounding box [lon_min, lat_min, lon_max, lat_max] in WGS84, with a margin.
+  # Used to pre-filter Overture GeoParquet reads; exact clipping uses the national boundary.
+  bbox: [25.5, 35.7, 44.9, 42.2]
+
+# Local working folders, relative to the repository root (data/ is never committed).
+paths:
+  data_dir: data
+  raw_dir: data/raw
+  interim_dir: data/interim
+  output_dir: data/output
+  tuik_dir: data/raw/tuik
+
+sources:
+  overture:
+    # Overture release, e.g. "2026-09-17.0". null = resolve the latest release at run time (Adım 2).
+    release: null
+    base_url: s3://overturemaps-us-west-2/release
+  osm:
+    pbf_url: https://download.geofabrik.de/europe/turkey-latest.osm.pbf
+  tuik:
+    # ADNKS neighbourhood/village population year; files are downloaded manually from MEDAS
+    # into paths.tuik_dir.
+    adnks_year: null
+  sege:
+    # SEGE study year (province and district level).
+    year: null
+
+# OSM <-> Overture conflation (draft values, calibrated in Adım 2).
+matching:
+  max_distance_m: 50
+  min_name_similarity: 0.8   # similarity of Turkish-normalized names, 0-1
+  require_category_match: true
+
+# H3 grid resolutions (average cell area: 7 ~ 5.2 km2, 8 ~ 0.74 km2, 9 ~ 0.11 km2).
+h3:
+  resolutions: [7, 8, 9]
+
+analysis:
+  # Units below this resident population are reported separately from the count model (draft).
+  min_population: 100
+  # Significance level of the overdispersion test used to choose Poisson vs negative binomial.
+  overdispersion_alpha: 0.05
+  saturation:
+    # Pearson residual r: r > surplus -> "fazla", r < deficit -> "eksik", otherwise "dengeli".
+    surplus_threshold: 2.0
+    deficit_threshold: -2.0
+  # Opportunity score = weighted sum of normalized components; weights must sum to 1.
+  opportunity_weights:
+    deficit: 0.5
+    accessibility: 0.25
+    demand: 0.25
+  # Data confidence classes from a 0-1 confidence score: >= high -> "yüksek",
+  # >= medium -> "orta", otherwise "düşük".
+  confidence:
+    high: 0.75
+    medium: 0.5
+
+map:
+  # Zoom bands shared by the web app and tile generation. Each band covers [min_zoom, max_zoom).
+  zoom_bands:
+    - id: country
+      name: Türkiye / il ölçeği
+      min_zoom: 0
+      max_zoom: 9
+    - id: district
+      name: İlçe ölçeği
+      min_zoom: 9
+      max_zoom: 14
+    - id: street
+      name: Sokak ölçeği
+      min_zoom: 14
+      max_zoom: 24
+
+publish:
+  versions_prefix: v/          # each data refresh is published under v/YYYY-MM-DD/
+  manifest_key: manifest.json  # points at the latest version; written last (atomic switch)
+  keep_live_versions: 2        # versions kept live on R2; older ones are archived
+  r2:
+    # Placeholders: Cloudflare is set up in a later step.
+    bucket: null
+    public_base_url: null      # production: our own domain in front of R2
+    dev_base_url: null         # development only: https://pub-<id>.r2.dev
+  archive:
+    provider: google_drive     # set up in Adım 8
+    folder_id: null
